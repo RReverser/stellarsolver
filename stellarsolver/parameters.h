@@ -92,9 +92,11 @@ typedef enum { EXTRACTOR_INTERNAL, //This uses internal SEP to Sextract Sources
              } ExtractorType;
 
 typedef enum { SOLVER_STELLARSOLVER,    //This uses the internal build of astrometry.net
+#ifdef WITH_EXTERNAL
                SOLVER_LOCALASTROMETRY,  //This uses an astrometry.net or ANSVR locally on this computer
                SOLVER_ASTAP,            //This uses a local installation of ASTAP
                SOLVER_ONLINEASTROMETRY  //This uses the online astrometry.net or ASTAP
+#endif
              } SolverType;
 
 //This gets the processType as a string explaining the command StellarSolver is Running
@@ -141,6 +143,7 @@ static QString getCommandString(SSolver::ProcessType processType, SSolver::Extra
                 commandString += "StellarSolver ";
                 break;
 
+#ifdef WITH_EXTERNAL
             case SOLVER_LOCALASTROMETRY:
                 commandString += "local solver ";
                 break;
@@ -152,6 +155,7 @@ static QString getCommandString(SSolver::ProcessType processType, SSolver::Extra
             case SOLVER_ONLINEASTROMETRY:
                 commandString += "online solver ";
                 break;
+#endif
         }
     }
     return commandString;

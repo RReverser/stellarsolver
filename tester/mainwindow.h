@@ -11,8 +11,10 @@
 //Includes for this project
 #include "structuredefinitions.h"
 #include "stellarsolver.h"
+#ifdef WITH_EXTERNAL
 #include "externalsextractorsolver.h"
 #include "onlinesolver.h"
+#endif
 
 //system includes
 #include "math.h"

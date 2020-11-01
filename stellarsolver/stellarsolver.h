@@ -53,6 +53,7 @@ class StellarSolver : public QObject
         explicit StellarSolver(const FITSImage::Statistic &imagestats,  uint8_t const *imageBuffer, QObject *parent = nullptr);
         ~StellarSolver();
 
+#ifdef WITH_EXTERNAL
         //Methods to get default file paths
         static ExternalProgramPaths getLinuxDefaultPaths();
         static ExternalProgramPaths getLinuxInternalPaths();
@@ -60,6 +61,7 @@ class StellarSolver : public QObject
         static ExternalProgramPaths getMacInternalPaths();
         static ExternalProgramPaths getWinANSVRPaths();
         static ExternalProgramPaths getWinCygwinPaths();
+#endif
 
         //This gets the processType as a string explaining the command StellarSolver is Running
         QString getCommandString()
@@ -283,6 +285,7 @@ class StellarSolver : public QObject
         bool m_CleanupTemporaryFiles {true};
         bool m_AutoGenerateAstroConfig {true};
 
+#ifdef WITH_EXTERNAL
         //System File Paths
         QStringList m_IndexFilePaths;
         QString m_ASTAPBinaryPath;
@@ -294,6 +297,7 @@ class StellarSolver : public QObject
         //Online Options
         QString m_AstrometryAPIKey;
         QString m_AstrometryAPIURL;
+#endif
 
         bool useSubframe {false};
         QRect m_Subframe;

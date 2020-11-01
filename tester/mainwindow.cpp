@@ -39,6 +39,7 @@
 #include <QToolTip>
 #include <QtGlobal>
 #include "version.h"
+#include "sep/sep.h"
 
 MainWindow::MainWindow() :
     QMainWindow(),
@@ -194,7 +195,7 @@ MainWindow::MainWindow() :
 
     connect(ui->setPathsAutomatically, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int num)
     {
-
+#ifdef WITH_EXTERNAL
         ExternalProgramPaths paths;
         switch(num)
         {
@@ -226,6 +227,7 @@ MainWindow::MainWindow() :
         ui->solverPath->setText(paths.solverPath);
         ui->astapPath->setText(paths.astapBinaryPath);
         ui->wcsPath->setText(paths.wcsPath);
+#endif
     });
     ui->setPathsAutomatically->setToolTip("This allows you to select the default values of typical configurations of paths to external files/programs on different systems from a dropdown");
 
@@ -421,6 +423,7 @@ MainWindow::MainWindow() :
     index = programSettings.value("setPathsIndex", index).toInt();
     ui->setPathsAutomatically->setCurrentIndex(index);
 
+#ifdef WITH_EXTERNAL
     //This gets a temporary ExternalSextractorSolver to get the defaults
     //It tries to load from the saved settings if possible as well.
     ExternalSextractorSolver extTemp(processType, m_ExtractorType, solverType, stats, m_ImageBuffer, this);
@@ -432,6 +435,7 @@ MainWindow::MainWindow() :
     ui->cleanupTemp->setChecked(programSettings.value("cleanupTemporaryFiles", extTemp.cleanupTemporaryFiles).toBool());
     ui->generateAstrometryConfig->setChecked(programSettings.value("autoGenerateAstroConfig",
             extTemp.autoGenerateAstroConfig).toBool());
+#endif
 
     //These load the default settings from the StellarSolver usting a temporary object
     StellarSolver temp(processType, stats, m_ImageBuffer, this);
@@ -796,7 +800,9 @@ void MainWindow::solveImage()
         stellarSolver->setParameters(optionsList.at(profileSelection - 1));
 
     setupStellarSolverParameters();
+#ifdef WITH_EXTERNAL
     setupExternalSextractorSolverIfNeeded();
+#endif
 
     stellarSolver->clearSubFrame();
 
@@ -825,6 +831,7 @@ void MainWindow::solveImage()
     stellarSolver->start();
 }
 
+#ifdef WITH_EXTERNAL
 //This sets up the External Sextractor and Solver and sets settings specific to them
 void MainWindow::setupExternalSextractorSolverIfNeeded()
 {
@@ -844,6 +851,7 @@ void MainWindow::setupExternalSextractorSolverIfNeeded()
     stellarSolver->setProperty("AstrometryAPIKey", "iczikaqstszeptgs");
     stellarSolver->setProperty("AstrometryAPIURL", "http://nova.astrometry.net");
 }
+#endif
 
 void MainWindow::setupStellarSolverParameters()
 {

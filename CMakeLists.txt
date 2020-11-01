@@ -50,13 +50,13 @@ set(config_FN
     )
 
 file(REMOVE "${config_FN}")
-if (WIN32)
+if (WIN32 OR EMSCRIPTEN)
 
     file(APPEND "${config_FN}" "#define NEED_DECLARE_QSORT_R 1\n")
     file(APPEND "${config_FN}" "#define NEED_QSORT_R 1\n")
     file(APPEND "${config_FN}" "#define NEED_SWAP_QSORT_R 0\n")
 
-else(WIN32)
+else(WIN32 OR EMSCRIPTEN)
 
 try_run(RUN_RESULT_2 COMPILE_SUCCESS_2 ${CMAKE_CURRENT_BINARY_DIR} ${config_SRCS} COMPILE_DEFINITIONS -DTEST_DECLARE_QSORT_R=ON)
 if(COMPILE_SUCCESS_2 AND (RUN_RESULT_2 EQUAL 0))
@@ -82,17 +82,22 @@ else()
 endif()
 file(APPEND "${config_FN}" "#define NEED_SWAP_QSORT_R ${VAR_4}\n")
 
-endif(WIN32)
+endif(WIN32 OR EMSCRIPTEN)
 
 # We aren't using netpbm in this program, so set this to 0 no matter what
 file(APPEND "${config_FN}" "#define HAVE_NETPBM 0")
 
 option(BUILD_TESTER "Build stellarsolver tester program, instead of just the library" Off)
+option(ENABLE_EXTERNAL "Enable external solvers" ON)
+
+if(ENABLE_EXTERNAL)
+    add_definitions(-DWITH_EXTERNAL=1)
+endif(ENABLE_EXTERNAL)
 
 find_package(CFITSIO REQUIRED)
 find_package(GSL REQUIRED)
 find_package(WCSLIB REQUIRED)
-find_package(Qt5 5.4 REQUIRED COMPONENTS Gui Widgets Core Concurrent Network)
+find_package(Qt5 5.4 REQUIRED COMPONENTS Gui Widgets Core OPTIONAL_COMPONENTS Network)
 
 if(WIN32)
     find_package(Boost 1.45.0 COMPONENTS regex)
@@ -241,13 +246,18 @@ set (sep_SRCS
    ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/sep/util.cpp
     )
 
+if(ENABLE_EXTERNAL)
+    set(StellarSolver_EXTERNAL_SRCS
+        ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/externalsextractorsolver.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/onlinesolver.cpp
+    )
+endif(ENABLE_EXTERNAL)
 set(StellarSolver_SRCS
    ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/parameters.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/sextractorsolver.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/internalsextractorsolver.cpp
-   ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/externalsextractorsolver.cpp
-   ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/onlinesolver.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/stellarsolver.cpp
+   ${StellarSolver_EXTERNAL_SRCS}
    )
 
 set(ALL_SRCS
@@ -272,10 +282,12 @@ target_link_libraries(stellarsolver
     ${GSL_LIBRARIES}
     ${WCSLIB_LIBRARIES}
     Qt5::Core
-    Qt5::Network
     Qt5::Widgets
     Qt5::Concurrent
     )
+if(ENABLE_EXTERNAL)
+    target_link_libraries(stellarsolver Qt5::Network)
+endif(ENABLE_EXTERNAL)
 
 if(WIN32)
     target_link_libraries(stellarsolver wsock32 ${Boost_LIBRARIES})
@@ -372,6 +384,10 @@ else(APPLE)
 endif(APPLE)
 
 endif(BUILD_TESTER)
+
+if(EMSCRIPTEN)
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --bind")
+endif(EMSCRIPTEN)
 
 #########################################################################################
 # Generate Package Config Files

@@ -9,14 +9,17 @@
 #include <sys/sysctl.h>
 #elif defined(_WIN32)
 #include "windows.h"
-#else //Linux
+#elif !defined(EMSCRIPTEN)
 #include <QProcess>
 #endif
 
 #include "stellarsolver.h"
 #include "sextractorsolver.h"
+#include "internalsextractorsolver.h"
+#ifdef WITH_EXTERNAL
 #include "externalsextractorsolver.h"
 #include "onlinesolver.h"
+#endif
 #include <QApplication>
 #include <QSettings>
 
@@ -51,6 +54,7 @@ SextractorSolver* StellarSolver::createSextractorSolver()
 {
     SextractorSolver *solver;
 
+#ifdef WITH_EXTERNAL
     if(m_ProcessType == SOLVE && m_SolverType == SOLVER_ONLINEASTROMETRY)
     {
         OnlineSolver *onlineSolver = new OnlineSolver(m_ProcessType, m_SextractorType, m_SolverType, m_Statistics, m_ImageBuffer,
@@ -61,10 +65,7 @@ SextractorSolver* StellarSolver::createSextractorSolver()
         onlineSolver->sextractorBinaryPath = m_SextractorBinaryPath;
         solver = onlineSolver;
     }
-    else if((m_ProcessType == SOLVE && m_SolverType == SOLVER_STELLARSOLVER) || (m_ProcessType != SOLVE
-            && m_SextractorType != EXTRACTOR_EXTERNAL))
-        solver = new InternalSextractorSolver(m_ProcessType, m_SextractorType, m_SolverType, m_Statistics, m_ImageBuffer, this);
-    else
+    else if(m_ProcessType == SOLVE ? m_SolverType != SOLVER_STELLARSOLVER : m_SextractorType == SEXTRACTOR_EXTERNAL)
     {
         ExternalSextractorSolver *extSolver = new ExternalSextractorSolver(m_ProcessType, m_SextractorType, m_SolverType,
                 m_Statistics, m_ImageBuffer, this);
@@ -78,6 +79,9 @@ SextractorSolver* StellarSolver::createSextractorSolver()
         extSolver->autoGenerateAstroConfig = m_AutoGenerateAstroConfig;
         solver = extSolver;
     }
+    else
+#endif
+        solver = new InternalSextractorSolver(m_ProcessType, m_SextractorType, m_SolverType, m_Statistics, m_ImageBuffer, this);
 
     if(useSubframe)
         solver->setUseSubframe(m_Subframe);
@@ -98,6 +102,7 @@ SextractorSolver* StellarSolver::createSextractorSolver()
     return solver;
 }
 
+#ifdef WITH_EXTERNAL
 //Methods to get default file paths
 ExternalProgramPaths StellarSolver::getLinuxDefaultPaths()
 {
@@ -123,6 +128,7 @@ ExternalProgramPaths StellarSolver::getWinCygwinPaths()
 {
     return ExternalSextractorSolver::getLinuxDefaultPaths();
 };
+#endif
 
 void StellarSolver::extract(bool calculateHFR, QRect frame)
 {
@@ -207,12 +213,14 @@ void StellarSolver::start()
 
 bool StellarSolver::checkParameters()
 {
+#ifdef WITH_EXTERNAL
     if(params.multiAlgorithm != NOT_MULTI && m_SolverType == SOLVER_ASTAP && m_ProcessType == SOLVE)
     {
         if(m_SSLogLevel != LOG_OFF)
             emit logOutput("ASTAP does not support Parallel solves.  Disabling that option");
         params.multiAlgorithm = NOT_MULTI;
     }
+#endif
 
     if(m_ProcessType == SOLVE && m_SolverType == SOLVER_STELLARSOLVER && m_SextractorType != EXTRACTOR_INTERNAL)
     {
@@ -267,7 +275,11 @@ bool StellarSolver::checkParameters()
 //to attempt to efficiently use modern multi core computers to speed up the solve
 void StellarSolver::parallelSolve()
 {
-    if(params.multiAlgorithm == NOT_MULTI || !(m_SolverType == SOLVER_STELLARSOLVER || m_SolverType == SOLVER_LOCALASTROMETRY))
+    if(params.multiAlgorithm == NOT_MULTI || !(m_SolverType == SOLVER_STELLARSOLVER
+#ifdef WITH_EXTERNAL
+        || m_SolverType == SOLVER_LOCALASTROMETRY
+#endif
+    ))
         return;
     parallelSolvers.clear();
     m_ParallelSolversFinishedCount = 0;
@@ -808,7 +820,7 @@ bool StellarSolver::getAvailableRAM(double &availableRAM, double &totalRAM)
     memory = p.readAllStandardOutput();
     totalRAM = memory.toLong() * 1024.0; //It is in kB on this system
     p.close();
-#else
+#elif !defined(EMSCRIPTEN)
     MEMORYSTATUSEX memory_status;
     ZeroMemory(&memory_status, sizeof(MEMORYSTATUSEX));
     memory_status.dwLength = sizeof(MEMORYSTATUSEX);
