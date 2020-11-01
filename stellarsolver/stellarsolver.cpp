@@ -193,16 +193,21 @@ void StellarSolver::start()
 
     //These are the solvers that support parallelization, ASTAP and the online ones do not
     if(params.multiAlgorithm != NOT_MULTI && m_ProcessType == SOLVE && (m_SolverType == SOLVER_STELLARSOLVER
-            || m_SolverType == SOLVER_LOCALASTROMETRY))
+#ifdef WITH_EXTERNAL
+            || m_SolverType == SOLVER_LOCALASTROMETRY
+#endif
+    ))
     {
         m_SextractorSolver->extract();
         parallelSolve();
     }
+#ifdef WITH_EXTERNAL
     else if(m_SolverType == SOLVER_ONLINEASTROMETRY)
     {
         connect(m_SextractorSolver, &SextractorSolver::finished, this, &StellarSolver::processFinished);
         m_SextractorSolver->execute();
     }
+#endif
     else
     {
         connect(m_SextractorSolver, &SextractorSolver::finished, this, &StellarSolver::processFinished);

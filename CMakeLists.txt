@@ -283,8 +283,10 @@ target_link_libraries(stellarsolver
     ${WCSLIB_LIBRARIES}
     Qt5::Core
     Qt5::Widgets
-    Qt5::Concurrent
     )
+if(NOT EMSCRIPTEN)
+    target_link_libraries(stellarsolver Qt5::Concurrent)
+endif(NOT EMSCRIPTEN)
 if(ENABLE_EXTERNAL)
     target_link_libraries(stellarsolver Qt5::Network)
 endif(ENABLE_EXTERNAL)
@@ -365,9 +367,13 @@ target_link_libraries(StellarSolverTester
     Qt5::Gui
     Qt5::Widgets
     Qt5::Core
-    Qt5::Network
-    Qt5::Concurrent
     )
+if(NOT EMSCRIPTEN)
+    target_link_libraries(StellarSolverTester Qt5::Concurrent)
+endif(NOT EMSCRIPTEN)
+if(ENABLE_EXTERNAL)
+    target_link_libraries(StellarSolverTester Qt5::Network)
+endif(ENABLE_EXTERNAL)
 
 if (NOT WIN32)
 target_link_libraries(StellarSolverTester -lpthread)
