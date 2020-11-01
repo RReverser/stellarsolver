@@ -29,6 +29,7 @@ class StellarSolver : public QObject
         Q_OBJECT
         Q_PROPERTY(QString BasePath MEMBER m_BasePath)
         Q_PROPERTY(QString FileToProcess MEMBER m_FileToProcess)
+#ifdef WITH_EXTERNAL
         Q_PROPERTY(QString ASTAPBinaryPath MEMBER m_ASTAPBinaryPath)
         Q_PROPERTY(QString SextractorBinaryPath MEMBER m_SextractorBinaryPath)
         Q_PROPERTY(QString ConfPath MEMBER m_ConfPath)
@@ -36,6 +37,7 @@ class StellarSolver : public QObject
         Q_PROPERTY(QString WCSPath MEMBER m_WCSPath)
         Q_PROPERTY(QString AstrometryAPIKey MEMBER m_AstrometryAPIKey)
         Q_PROPERTY(QString AstrometryAPIURL MEMBER m_AstrometryAPIURL)
+#endif
         Q_PROPERTY(QString LogFileName MEMBER m_LogFileName)
         Q_PROPERTY(bool UsePosition MEMBER m_UsePosition)
         Q_PROPERTY(bool UseScale MEMBER m_UseScale)
