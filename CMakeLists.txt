@@ -23,6 +23,11 @@ configure_file(
     ${CMAKE_CURRENT_BINARY_DIR}/version.h
 )
 
+if(EMSCRIPTEN)
+    add_compile_options("-pthread")
+    add_link_options("--bind")
+endif(EMSCRIPTEN)
+
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
@@ -286,6 +291,9 @@ target_link_libraries(stellarsolver
     )
 if(NOT EMSCRIPTEN)
     target_link_libraries(stellarsolver Qt5::Concurrent)
+else(NOT EMSCRIPTEN)
+    include_directories(~/qt5/qtbase/include/QtConcurrent)
+    target_link_libraries(stellarsolver -pthread)
 endif(NOT EMSCRIPTEN)
 if(ENABLE_EXTERNAL)
     target_link_libraries(stellarsolver Qt5::Network)
@@ -370,6 +378,9 @@ target_link_libraries(StellarSolverTester
     )
 if(NOT EMSCRIPTEN)
     target_link_libraries(StellarSolverTester Qt5::Concurrent)
+else(NOT EMSCRIPTEN)
+    include_directories(~/qt5/qtbase/include/QtConcurrent)
+    target_link_libraries(StellarSolverTester -pthread)
 endif(NOT EMSCRIPTEN)
 if(ENABLE_EXTERNAL)
     target_link_libraries(StellarSolverTester Qt5::Network)
@@ -390,10 +401,6 @@ else(APPLE)
 endif(APPLE)
 
 endif(BUILD_TESTER)
-
-if(EMSCRIPTEN)
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --bind")
-endif(EMSCRIPTEN)
 
 #########################################################################################
 # Generate Package Config Files

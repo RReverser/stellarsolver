@@ -752,8 +752,9 @@ void MainWindow::sextractImage()
     else
         stellarSolver->setParameters(optionsList.at(profileSelection - 1));
 
-
+#ifdef WITH_EXTERNAL
     setupExternalSextractorSolverIfNeeded();
+#endif
     setupStellarSolverParameters();
 
     if(useSubframe)

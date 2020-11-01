@@ -218,7 +218,9 @@ public slots:
     //These functions handle the settings for the Sextractors and Solvers
     SSolver::Parameters getSettingsFromUI();
     void sendSettingsToUI(SSolver::Parameters a);
+#ifdef WITH_EXTERNAL
     void setupExternalSextractorSolverIfNeeded();
+#endif
     void setupStellarSolverParameters();
 
     //These functions get called when the sextractor or solver finishes
